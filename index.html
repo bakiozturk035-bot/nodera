@@ -83,6 +83,10 @@
   }
   .section-head .mini-actions button:hover { background: var(--bg); border-color: var(--accent); color: var(--accent); }
 
+  .breadcrumb { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .breadcrumb span { cursor: pointer; }
+  .breadcrumb span:hover { color: var(--accent); }
+
   .list { background: var(--panel); border: 1px solid var(--border); border-radius: 11px; overflow: hidden; }
   .list-item { display: flex; align-items: center; gap: 11px; padding: 11px 15px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
   .list-item:last-child { border-bottom: none; }
@@ -102,7 +106,6 @@
   .badge.ok { background: #ecfdf5; color: var(--ok); }
   .badge.warn { background: #fffbeb; color: #b45309; }
 
-  /* Dosya yükleme alanı — Dosyalar bölümünün içinde */
   .dropzone-inline {
     border: 2px dashed var(--border); border-radius: 11px; padding: 22px;
     text-align: center; color: var(--muted); font-size: 13px;
@@ -145,7 +148,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const DB_KEY = 'nodera_db_v1';
+const DB_KEY = 'nodera_db_v2';
 const SESSION_KEY = 'nodera_session';
 
 function loadDB() {
@@ -170,8 +173,10 @@ function hash(str) {
 }
 function userData() {
   if (!session) return null;
-  if (!db.data[session.userId]) db.data[session.userId] = { projects: [], files: [], tasks: [], notes: [] };
-  return db.data[session.userId];
+  if (!db.data[session.userId]) db.data[session.userId] = { projects: [], files: [], tasks: [], notes: [], docFolders: [] };
+  const d = db.data[session.userId];
+  if (!d.docFolders) d.docFolders = []; // eski verilerle uyumluluk
+  return d;
 }
 function persist() { saveDB(db); }
 
@@ -226,7 +231,7 @@ function doRegister() {
   if (db.users.find(x => x.email === e)) return err.textContent = 'Bu e-posta kayıtlı.';
   const user = { id: uid(), username: u, email: e, pass: hash(p), created: Date.now() };
   db.users.push(user);
-  db.data[user.id] = { projects: [], files: [], tasks: [], notes: [] };
+  db.data[user.id] = { projects: [], files: [], tasks: [], notes: [], docFolders: [] };
   persist();
   session = { userId: user.id, username: user.username };
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -258,7 +263,8 @@ function doLogout() {
 }
 
 let currentProjectId = null;
-let currentFolderPath = [];
+let currentFolderPath = [];      // Klasörler bölümü için
+let currentDocFolderPath = [];   // Dosyalar bölümü için (AYRI)
 
 function renderMain() {
   const app = document.getElementById('app');
@@ -313,6 +319,7 @@ function renderTree() {
     el.onclick = () => {
       currentProjectId = el.dataset.pid;
       currentFolderPath = [];
+      currentDocFolderPath = [];
       renderTree(); renderContent();
     };
   });
@@ -343,13 +350,26 @@ function renderContent() {
   }
 
   const folderKey = currentFolderPath.join('/');
-  const files = d.files.filter(f => f.projectId === p.id && f.folder === folderKey);
+  const docFolderKey = currentDocFolderPath.join('/');
+
+  // Klasörler bölümünün görevleri
   const tasks = d.tasks.filter(t => t.projectId === p.id);
   const doneTasks = tasks.filter(t => t.status === 'done').length;
+
+  // Dosyalar bölümü — şu anki dosya klasöründeki dosyalar
+  const docFiles = d.files.filter(f =>
+    f.projectId === p.id &&
+    f.docFolder === docFolderKey
+  );
+  const totalDocFiles = d.files.filter(f => f.projectId === p.id).length;
 
   const breadcrumb = ['<span style="cursor:pointer" data-crumb="-1">' + escapeHtml(p.name) + '</span>']
     .concat(currentFolderPath.map((f, i) =>
       `<span style="cursor:pointer" data-crumb="${i}">${escapeHtml(f)}</span>`)).join(' / ');
+
+  const docBreadcrumb = ['<span style="cursor:pointer" data-dcrumb="-1">📂 Dosyalar</span>']
+    .concat(currentDocFolderPath.map((f, i) =>
+      `<span style="cursor:pointer" data-dcrumb="${i}">${escapeHtml(f)}</span>`)).join(' / ');
 
   c.innerHTML = `
     <div class="content-head">
@@ -365,7 +385,7 @@ function renderContent() {
     </div>
 
     <div class="stats">
-      <div class="stat"><div class="n">${files.length}</div><div class="l">Bu klasördeki dosya</div></div>
+      <div class="stat"><div class="n">${totalDocFiles}</div><div class="l">Toplam dosya</div></div>
       <div class="stat"><div class="n">${tasks.length}</div><div class="l">Toplam görev</div></div>
       <div class="stat"><div class="n">${doneTasks}</div><div class="l">Tamamlanan</div></div>
       <div class="stat"><div class="n">${tasks.length ? Math.round(doneTasks/tasks.length*100) : 0}%</div><div class="l">İlerleme</div></div>
@@ -385,15 +405,17 @@ function renderContent() {
       <div class="section-head">
         <h3>Dosyalar</h3>
         <div class="mini-actions">
-          <button id="btn-new-folder-in-files">+ Yeni Klasör</button>
+          <button id="btn-new-docfolder">+ Yeni Klasör</button>
           <button id="btn-upload-in-files">+ Dosya Yükle</button>
         </div>
       </div>
+      <div class="breadcrumb" style="margin-bottom:8px">${docBreadcrumb}</div>
       <div class="dropzone-inline" id="dz-inline">
         📎 Dosyaları buraya sürükle veya tıkla
         <div class="small">PDF, DWG, SKP, RVT, fotoğraf, video, Excel, Word... her tür dosya</div>
       </div>
       <input type="file" id="fi-inline" multiple style="display:none">
+      <div id="docfolders-list"></div>
       <div id="files-list"></div>
     </div>
 
@@ -408,6 +430,7 @@ function renderContent() {
     </div>
   `;
 
+  // Breadcrumb tıklama — Klasörler
   c.querySelectorAll('[data-crumb]').forEach(el => {
     el.onclick = () => {
       const i = parseInt(el.dataset.crumb);
@@ -416,15 +439,24 @@ function renderContent() {
     };
   });
 
+  // Breadcrumb tıklama — Dosyalar
+  c.querySelectorAll('[data-dcrumb]').forEach(el => {
+    el.onclick = () => {
+      const i = parseInt(el.dataset.dcrumb);
+      currentDocFolderPath = i < 0 ? [] : currentDocFolderPath.slice(0, i + 1);
+      renderContent();
+    };
+  });
+
   document.getElementById('btn-new-folder').onclick = () => openFolderModal();
   document.getElementById('btn-upload').onclick = () => openUploadModal();
   document.getElementById('btn-new-task').onclick = () => openTaskModal();
   document.getElementById('btn-new-folder-2').onclick = () => openFolderModal();
-  document.getElementById('btn-new-folder-in-files').onclick = () => openFolderModal();
+  document.getElementById('btn-new-docfolder').onclick = () => openDocFolderModal();
   document.getElementById('btn-upload-in-files').onclick = () => document.getElementById('fi-inline').click();
   document.getElementById('btn-new-task-2').onclick = () => openTaskModal();
 
-  // Inline dropzone
+  // Inline dropzone (Dosyalar)
   const dz = document.getElementById('dz-inline');
   const fi = document.getElementById('fi-inline');
   dz.onclick = () => fi.click();
@@ -434,19 +466,17 @@ function renderContent() {
   fi.onchange = () => handleFiles(fi.files, null);
 
   renderFolders(p, folderKey);
-  renderFiles(p, files);
+  renderDocFolders(p, docFolderKey);
+  renderFiles(p, docFiles);
   renderTasks(p, tasks);
 }
 
+// ===== KLASÖRLER BÖLÜMÜ (proje organizasyonu) =====
 function renderFolders(p, folderKey) {
   const el = document.getElementById('folders-list');
   const d = userData();
   const prefix = folderKey ? folderKey + '/' : '';
   const subfolders = new Set();
-  d.files.filter(f => f.projectId === p.id && f.folder.startsWith(prefix)).forEach(f => {
-    const rest = f.folder.slice(prefix.length);
-    if (rest) subfolders.add(rest.split('/')[0]);
-  });
   d.tasks.filter(t => t.projectId === p.id && t.folder && t.folder.startsWith(prefix)).forEach(t => {
     const rest = t.folder.slice(prefix.length);
     if (rest) subfolders.add(rest.split('/')[0]);
@@ -484,11 +514,64 @@ function renderFolders(p, folderKey) {
       e.stopPropagation();
       const name = btn.dataset.delFolder;
       const full = folderKey ? folderKey + '/' + name : name;
-      if (!confirm('Klasörü sil? İçindeki dosyalar da silinir.')) return;
+      if (!confirm('Klasörü sil?')) return;
       const d2 = userData();
-      d2.files = d2.files.filter(f => !(f.projectId === p.id && (f.folder === full || f.folder.startsWith(full + '/'))));
       d2.tasks = d2.tasks.filter(t => !(t.projectId === p.id && (t.folder === full || t.folder.startsWith(full + '/'))));
       p.emptyFolders = (p.emptyFolders || []).filter(f => f !== full && !f.startsWith(full + '/'));
+      persist(); toast('Klasör silindi.'); renderContent();
+    };
+  });
+}
+
+// ===== DOSYALAR BÖLÜMÜ — KENDİ KLASÖR SİSTEMİ =====
+function renderDocFolders(p, docFolderKey) {
+  const el = document.getElementById('docfolders-list');
+  const d = userData();
+  const prefix = docFolderKey ? docFolderKey + '/' : '';
+  const subfolders = new Set();
+
+  // Bu proje için dosya klasörleri (docFolders)
+  d.docFolders.filter(f => f.projectId === p.id && f.path.startsWith(prefix)).forEach(f => {
+    const rest = f.path.slice(prefix.length);
+    if (rest) subfolders.add(rest.split('/')[0]);
+  });
+
+  // Dosyaların olduğu klasörlerden de çıkar
+  d.files.filter(f => f.projectId === p.id && f.docFolder && f.docFolder.startsWith(prefix)).forEach(f => {
+    const rest = f.docFolder.slice(prefix.length);
+    if (rest) subfolders.add(rest.split('/')[0]);
+  });
+
+  const list = [...subfolders];
+  if (!list.length) {
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = `<div class="list" style="margin-bottom:10px">${list.map(name => `
+    <div class="list-item" data-docfolder="${escapeHtml(name)}">
+      <span class="ic">📁</span>
+      <div class="meta"><div class="name">${escapeHtml(name)}</div><div class="desc">Klasör</div></div>
+      <div class="right">
+        <button data-del-docfolder="${escapeHtml(name)}" title="Sil">Sil</button>
+      </div>
+    </div>`).join('')}</div>`;
+
+  el.querySelectorAll('[data-docfolder]').forEach(item => {
+    item.onclick = (e) => {
+      if (e.target.dataset.delDocfolder !== undefined) return;
+      currentDocFolderPath = [...currentDocFolderPath, item.dataset.docfolder];
+      renderContent();
+    };
+  });
+  el.querySelectorAll('[data-del-docfolder]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const name = btn.dataset.delDocfolder;
+      const full = docFolderKey ? docFolderKey + '/' + name : name;
+      if (!confirm('Klasörü sil? İçindeki dosyalar da silinir.')) return;
+      const d2 = userData();
+      d2.docFolders = d2.docFolders.filter(f => !(f.projectId === p.id && (f.path === full || f.path.startsWith(full + '/'))));
+      d2.files = d2.files.filter(f => !(f.projectId === p.id && (f.docFolder === full || (f.docFolder && f.docFolder.startsWith(full + '/')))));
       persist(); toast('Klasör silindi.'); renderContent();
     };
   });
@@ -624,7 +707,7 @@ function openProjectModal() {
       d.projects.push({ id: uid(), name, desc: m.querySelector('#np-desc').value.trim(), created: Date.now(), emptyFolders: [] });
       persist(); close();
       currentProjectId = d.projects[d.projects.length - 1].id;
-      currentFolderPath = [];
+      currentFolderPath = []; currentDocFolderPath = [];
       renderTree(); renderContent();
       toast('Proje oluşturuldu.');
     };
@@ -633,7 +716,7 @@ function openProjectModal() {
 
 function openFolderModal() {
   openModal(`
-    <h3>Yeni Klasör</h3>
+    <h3>Yeni Klasör (Klasörler bölümü)</h3>
     <label>Klasör adı</label>
     <input id="nf-name" placeholder="örn. Elektrik, Mekanik, Maliyet..." autofocus>
     <div class="modal-actions">
@@ -650,6 +733,33 @@ function openFolderModal() {
       if (!p.emptyFolders.includes(full)) p.emptyFolders.push(full);
       persist(); close(); renderContent();
       toast('Klasör oluşturuldu.');
+    };
+  });
+}
+
+// Dosyalar bölümü için AYRI klasör oluşturma
+function openDocFolderModal() {
+  openModal(`
+    <h3>Yeni Klasör (Dosyalar bölümü)</h3>
+    <label>Klasör adı</label>
+    <input id="ndf-name" placeholder="örn. Sözleşmeler, Çizimler, Faturalar..." autofocus>
+    <div class="modal-actions">
+      <button id="ndf-cancel">İptal</button>
+      <button class="primary" id="ndf-save">Oluştur</button>
+    </div>`, (m, close) => {
+    m.querySelector('#ndf-cancel').onclick = close;
+    m.querySelector('#ndf-save').onclick = () => {
+      const name = m.querySelector('#ndf-name').value.trim();
+      if (!name) return toast('Klasör adı gerekli.');
+      const p = currentProject();
+      const full = currentDocFolderPath.length ? currentDocFolderPath.join('/') + '/' + name : name;
+      const d = userData();
+      // Aynı isim varsa ekleme
+      if (!d.docFolders.find(f => f.projectId === p.id && f.path === full)) {
+        d.docFolders.push({ id: uid(), projectId: p.id, path: full, created: Date.now() });
+      }
+      persist(); close(); renderContent();
+      toast('Dosya klasörü oluşturuldu.');
     };
   });
 }
@@ -674,7 +784,7 @@ function openUploadModal() {
 function handleFiles(files, close) {
   if (!files.length) return;
   const p = currentProject();
-  const folderKey = currentFolderPath.join('/');
+  const docFolderKey = currentDocFolderPath.join('/'); // Dosyalar bölümünün klasörü
   let done = 0;
   const total = files.length;
   const d = userData();
@@ -682,7 +792,10 @@ function handleFiles(files, close) {
     const reader = new FileReader();
     reader.onload = () => {
       d.files.push({
-        id: uid(), projectId: p.id, folder: folderKey, name: file.name,
+        id: uid(), projectId: p.id,
+        docFolder: docFolderKey,
+        folder: '', // eski uyumluluk için boş
+        name: file.name,
         size: file.size, type: file.type, data: reader.result, created: Date.now()
       });
       done++;
