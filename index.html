@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NODERA</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f8fa;
+    --panel: #ffffff;
+    --border: #e5e7eb;
+    --text: #111827;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --danger: #dc2626;
+    --ok: #059669;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #app { height: 100vh; display: flex; flex-direction: column; }
+
+  .auth-wrap {
+    display: flex; align-items: center; justify-content: center;
+    height: 100vh; background: linear-gradient(135deg, #f7f8fa 0%, #eef2ff 100%);
+  }
+  .auth-box {
+    background: var(--panel); padding: 40px; border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06); width: 380px; max-width: 92vw;
+  }
+  .auth-box h1 { font-size: 24px; margin-bottom: 4px; letter-spacing: -0.5px; }
+  .auth-box .sub { color: var(--muted); margin-bottom: 24px; font-size: 13px; }
+  .auth-box input[type=text], .auth-box input[type=email], .auth-box input[type=password] {
+    width: 100%; padding: 11px 13px; border: 1px solid var(--border);
+    border-radius: 9px; font-size: 14px; margin-bottom: 11px; outline: none;
+    transition: border 0.15s;
+  }
+  .auth-box input:focus { border-color: var(--accent); }
+  .auth-box button.primary {
+    width: 100%; padding: 11px; background: var(--accent); color: #fff;
+    border: none; border-radius: 9px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .auth-box button.primary:hover { background: var(--accent-hover); }
+  .auth-box .switch { text-align: center; margin-top: 16px; color: var(--muted); font-size: 13px; }
+  .auth-box .switch a { color: var(--accent); cursor: pointer; text-decoration: none; font-weight: 500; }
+  .remember { display: flex; align-items: center; gap: 7px; margin-bottom: 14px; color: var(--muted); font-size: 13px; }
+  .remember input { width: auto; margin: 0; }
+  .err { color: var(--danger); font-size: 13px; margin-bottom: 10px; min-height: 18px; }
+
+  .topbar {
+    height: 52px; background: var(--panel); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 18px; gap: 14px; flex-shrink: 0;
+  }
+  .logo { font-weight: 700; font-size: 16px; letter-spacing: -0.3px; }
+  .logo span { color: var(--accent); }
+  .topbar .spacer { flex: 1; }
+  .topbar .user { color: var(--muted); font-size: 13px; }
+  .topbar button.ghost {
+    background: transparent; border: 1px solid var(--border); padding: 6px 12px;
+    border-radius: 7px; cursor: pointer; font-size: 13px; color: var(--text);
+  }
+  .topbar button.ghost:hover { background: var(--bg); }
+
+  .body { flex: 1; display: flex; overflow: hidden; }
+
+  .sidebar {
+    width: 260px; background: var(--panel); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
+  }
+  .sidebar-head {
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .sidebar-head h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  .sidebar-head button {
+    background: var(--accent); color: #fff; border: none; width: 24px; height: 24px;
+    border-radius: 6px; cursor: pointer; font-size: 15px; line-height: 1; font-weight: 600;
+  }
+  .sidebar-head button:hover { background: var(--accent-hover); }
+  .tree { flex: 1; overflow-y: auto; padding: 8px; }
+  .tree-item {
+    display: flex; align-items: center; gap: 7px; padding: 7px 9px;
+    border-radius: 7px; cursor: pointer; font-size: 13.5px; user-select: none;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tree-item:hover { background: var(--bg); }
+  .tree-item.active { background: #eff6ff; color: var(--accent); font-weight: 500; }
+  .tree-item .icon { flex-shrink: 0; width: 16px; text-align: center; }
+  .tree-item .label { overflow: hidden; text-overflow: ellipsis; }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+  .content-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+  }
+  .content-head h1 { font-size: 22px; letter-spacing: -0.4px; }
+  .content-head .path { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .actions button {
+    padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border); background: var(--panel);
+    color: var(--text); transition: all 0.15s;
+  }
+  .actions button:hover { background: var(--bg); }
+  .actions button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .actions button.primary:hover { background: var(--accent-hover); }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 22px; }
+  .stat {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 11px;
+    padding: 14px 16px;
+  }
+  .stat .n { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+  .stat .l { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  .section { margin-bottom: 26px; }
+  .section h3 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--muted); margin-bottom: 10px;
+  }
+  .list { background: var(--panel); border: 1px solid var(--border); border-radius: 11px; overflow: hidden; }
+  .list-item {
+    display: flex; align-items: center; gap: 11px; padding: 11px 15px;
+    border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s;
+  }
+  .list-item:last-child { border-bottom: none; }
+  .list-item:hover { background: var(--bg); }
+  .list-item .ic { font-size: 17px; flex-shrink: 0; }
+  .list-item .meta { flex: 1; min-width: 0; }
+  .list-item .name { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .list-item .desc { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .list-item .right { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .list-item .right button {
+    background: transparent; border: none; cursor: pointer; color: var(--muted);
+    padding: 4px 7px; border-radius: 6px; font-size: 12px;
+  }
+  .list-item .right button:hover { background: var(--bg); color: var(--danger); }
+
+  .empty {
+    text-align: center; padding: 44px 20px; color: var(--muted); font-size: 13.5px;
+    background: var(--panel); border: 1px dashed var(--border); border-radius: 11px;
+  }
+  .empty .big { font-size: 30px; margin-bottom: 8px; opacity: 0.5; }
+
+  .badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500;
+    background: #eff6ff; color: var(--accent);
+  }
+  .badge.ok { background: #ecfdf5; color: var(--ok); }
+  .badge.warn { background: #fffbeb; color: #b45309; }
+
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(17,24,39,0.4);
+    display: flex; align-items: center; justify-content: center; z-index: 100;
+    backdrop-filter: blur(2px);
+  }
+  .modal {
+    background: var(--panel); border-radius: 14px; padding: 24px;
+    width: 440px; max-width: 92vw; box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    max-height: 88vh; overflow-y: auto;
+  }
+  .modal h3 { font-size: 17px; margin-bottom: 16px; }
+  .modal label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 5px; margin-top: 12px; }
+  .modal input, .modal textarea, .modal select {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 13.5px; font-family: inherit; outline: none;
+  }
+  .modal input:focus, .modal textarea:focus, .modal select:focus { border-color: var(--accent); }
+  .modal textarea { resize: vertical; min-height: 70px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  .modal-actions button {
+    padding: 9px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border); background: var(--panel); color: var(--text);
+  }
+  .modal-actions button:hover { background: var(--bg); }
+  .modal-actions button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .modal-actions button.primary:hover { background: var(--accent-hover); }
+
+  .dropzone {
+    border: 2px dashed var(--border); border-radius: 11px; padding: 26px;
+    text-align: center; color: var(--muted); font-size: 13px;
+    cursor: pointer; transition: all 0.15s; background: var(--panel);
+  }
+  .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
+
+  .gantt { background: var(--panel); border: 1px solid var(--border); border-radius: 11px; padding: 16px; overflow-x: auto; }
+  .gantt-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; min-width: 600px; }
+  .gantt-label { width: 180px; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+  .gantt-track { flex: 1; height: 24px; background: var(--bg); border-radius: 6px; position: relative; }
+  .gantt-bar {
+    position: absolute; top: 0; height: 100%; background: var(--accent);
+    border-radius: 6px; display: flex; align-items: center; padding: 0 8px;
+    color: #fff; font-size: 11px; font-weight: 500; overflow: hidden; white-space: nowrap;
+  }
+
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: #111827; color: #fff; padding: 11px 20px; border-radius: 9px;
+    font-size: 13.5px; z-index: 200; opacity: 0; transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+
+  .offline-bar {
+    background: #b45309; color: #fff; text-align: center; padding: 5px;
+    font-size: 12px; display: none;
+  }
+  .offline-bar.show { display: block; }
+
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DB_KEY = 'nodera_db_v1';
+const SESSION_KEY = 'nodera_session';
+
+function loadDB() {
+  try { return JSON.parse(localStorage.getItem(DB_KEY)) || { users: [], data: {} }; }
+  catch { return { users: [], data: {} }; }
+}
+function saveDB(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+let db = loadDB();
+let session = null;
+
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+function toast(msg, ms = 2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), ms);
+}
+function hash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
+  return 'h' + h.toString(36);
+}
+function userData() {
+  if (!session) return null;
+  if (!db.data[session.userId]) db.data[session.userId] = { projects: [], files: [], tasks: [], notes: [] };
+  return db.data[session.userId];
+}
+function persist() { saveDB(db); }
+
+function renderAuth(mode = 'login') {
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="auth-wrap">
+      <div class="auth-box">
+        <h1>NODERA<span style="color:var(--accent)">.</span></h1>
+        <div class="sub">Proje Yönetim ve Mühendislik Platformu</div>
+        <div class="err" id="err"></div>
+        ${mode === 'register' ? `
+          <input type="text" id="reg-user" placeholder="Kullanıcı adı" autocomplete="username">
+          <input type="email" id="reg-email" placeholder="E-posta" autocomplete="email">
+          <input type="password" id="reg-pass" placeholder="Şifre (en az 4 karakter)" autocomplete="new-password">
+          <input type="password" id="reg-pass2" placeholder="Şifre tekrar" autocomplete="new-password">
+          <button class="primary" id="btn-reg">Hesap Oluştur</button>
+          <div class="switch">Zaten hesabın var mı? <a id="to-login">Giriş yap</a></div>
+        ` : `
+          <input type="text" id="log-user" placeholder="Kullanıcı adı veya e-posta" autocomplete="username">
+          <input type="password" id="log-pass" placeholder="Şifre" autocomplete="current-password">
+          <div class="remember"><input type="checkbox" id="log-remember" checked> <label for="log-remember">Beni hatırla</label></div>
+          <button class="primary" id="btn-login">Giriş Yap</button>
+          <div class="switch">Hesabın yok mu? <a id="to-register">Kayıt ol</a></div>
+        `}
+      </div>
+    </div>`;
+
+  if (mode === 'register') {
+    document.getElementById('to-login').onclick = () => renderAuth('login');
+    document.getElementById('btn-reg').onclick = doRegister;
+    document.getElementById('reg-pass2').addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+  } else {
+    document.getElementById('to-register').onclick = () => renderAuth('register');
+    document.getElementById('btn-login').onclick = doLogin;
+    document.getElementById('log-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  }
+}
+
+function doRegister() {
+  const u = document.getElementById('reg-user').value.trim();
+  const e = document.getElementById('reg-email').value.trim().toLowerCase();
+  const p = document.getElementById('reg-pass').value;
+  const p2 = document.getElementById('reg-pass2').value;
+  const err = document.getElementById('err');
+  err.textContent = '';
+  if (!u || u.length < 2) return err.textContent = 'Kullanıcı adı en az 2 karakter olmalı.';
+  if (!e || !e.includes('@')) return err.textContent = 'Geçerli bir e-posta gir.';
+  if (p.length < 4) return err.textContent = 'Şifre en az 4 karakter olmalı.';
+  if (p !== p2) return err.textContent = 'Şifreler eşleşmiyor.';
+  if (db.users.find(x => x.username.toLowerCase() === u.toLowerCase())) return err.textContent = 'Bu kullanıcı adı alınmış.';
+  if (db.users.find(x => x.email === e)) return err.textContent = 'Bu e-posta kayıtlı.';
+
+  const user = { id: uid(), username: u, email: e, pass: hash(p), created: Date.now() };
+  db.users.push(user);
+  db.data[user.id] = { projects: [], files: [], tasks: [], notes: [] };
+  persist();
+  session = { userId: user.id, username: user.username };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  toast('Hesap oluşturuldu. Hoş geldin, ' + u + '!');
+  renderMain();
+}
+
+function doLogin() {
+  const id = document.getElementById('log-user').value.trim();
+  const p = document.getElementById('log-pass').value;
+  const remember = document.getElementById('log-remember').checked;
+  const err = document.getElementById('err');
+  err.textContent = '';
+  const user = db.users.find(x =>
+    x.username.toLowerCase() === id.toLowerCase() || x.email === id.toLowerCase());
+  if (!user || user.pass !== hash(p)) return err.textContent = 'Kullanıcı adı veya şifre hatalı.';
+
+  session = { userId: user.id, username: user.username };
+  if (remember) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  else sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  toast('Giriş yapıldı. Hoş geldin, ' + user.username + '!');
+  renderMain();
+}
+
+function doLogout() {
+  session = null;
+  localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
+  renderAuth('login');
+}
+
+let currentProjectId = null;
+let currentFolderPath = [];
+
+function renderMain() {
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="offline-bar" id="offline-bar">⚠ Çevrimdışı mod — değişiklikler yerel olarak kaydediliyor</div>
+    <div class="topbar">
+      <div class="logo">NODERA<span>.</span></div>
+      <div class="spacer"></div>
+      <div class="user">👤 ${escapeHtml(session.username)}</div>
+      <button class="ghost" id="btn-logout">Çıkış</button>
+    </div>
+    <div class="body">
+      <div class="sidebar">
+        <div class="sidebar-head">
+          <h2>Projeler</h2>
+          <button id="btn-new-project" title="Yeni proje">+</button>
+        </div>
+        <div class="tree" id="tree"></div>
+      </div>
+      <div class="content" id="content"></div>
+    </div>`;
+
+  document.getElementById('btn-logout').onclick = doLogout;
+  document.getElementById('btn-new-project').onclick = () => openProjectModal();
+  updateOfflineBar();
+  window.addEventListener('online', updateOfflineBar);
+  window.addEventListener('offline', updateOfflineBar);
+
+  renderTree();
+  renderContent();
+}
+
+function updateOfflineBar() {
+  const bar = document.getElementById('offline-bar');
+  if (!bar) return;
+  if (navigator.onLine) bar.classList.remove('show');
+  else bar.classList.add('show');
+}
+
+function renderTree() {
+  const tree = document.getElementById('tree');
+  const d = userData();
+  if (!d.projects.length) {
+    tree.innerHTML = `<div style="padding:20px 10px;color:var(--muted);font-size:13px;text-align:center">
+      Henüz proje yok.<br>Yukarıdaki <b>+</b> ile başla.</div>`;
+    return;
+  }
+  tree.innerHTML = d.projects.map(p => `
+    <div class="tree-item ${p.id === currentProjectId ? 'active' : ''}" data-pid="${p.id}">
+      <span class="icon">📁</span>
+      <span class="label">${escapeHtml(p.name)}</span>
+    </div>`).join('');
+  tree.querySelectorAll('.tree-item').forEach(el => {
+    el.onclick = () => {
+      currentProjectId = el.dataset.pid;
+      currentFolderPath = [];
+      renderTree(); renderContent();
+    };
+  });
+}
+
+function currentProject() {
+  const d = userData();
+  return d.projects.find(p => p.id === currentProjectId);
+}
+
+function renderContent() {
+  const c = document.getElementById('content');
+  const d = userData();
+  const p = currentProject();
+
+  if (!p) {
+    c.innerHTML = `
+      <div class="content-head"><div><h1>Hoş geldin, ${escapeHtml(session.username)}</h1>
+        <div class="path">NODERA çekirdek sürümü — tarayıcıda çalışır, offline destekli</div></div></div>
+      <div class="stats">
+        <div class="stat"><div class="n">${d.projects.length}</div><div class="l">Proje</div></div>
+        <div class="stat"><div class="n">${d.files.length}</div><div class="l">Dosya</div></div>
+        <div class="stat"><div class="n">${d.tasks.length}</div><div class="l">Görev</div></div>
+        <div class="stat"><div class="n">${d.tasks.filter(t=>t.status==='done').length}</div><div class="l">Tamamlanan</div></div>
+      </div>
+      <div class="empty">
+        <div class="big">📁</div>
+        Sol taraftan bir proje seç veya yeni proje oluştur.
+      </div>`;
+    return;
+  }
+
+  const folderKey = currentFolderPath.join('/');
+  const files = d.files.filter(f => f.projectId === p.id && f.folder === folderKey);
+  const tasks = d.tasks.filter(t => t.projectId === p.id);
+  const doneTasks = tasks.filter(t => t.status === 'done').length;
+
+  const breadcrumb = ['<span style="cursor:pointer" data-crumb="-1">' + escapeHtml(p.name) + '</span>']
+    .concat(currentFolderPath.map((f, i) =>
+      `<span style="cursor:pointer" data-crumb="${i}">${escapeHtml(f)}</span>`)).join(' / ');
+
+  c.innerHTML = `
+    <div class="content-head">
+      <div>
+        <h1>${escapeHtml(p.name)}</h1>
+        <div class="path">${breadcrumb}</div>
+      </div>
+      <div class="actions">
+        <button id="btn-new-folder">📁 Yeni Klasör</button>
+        <button id="btn-upload">📎 Dosya Yükle</button>
+        <button id="btn-new-task" class="primary">+ Görev</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="n">${files.length}</div><div class="l">Bu klasördeki dosya</div></div>
+      <div class="stat"><div class="n">${tasks.length}</div><div class="l">Toplam görev</div></div>
+      <div class="stat"><div class="n">${doneTasks}</div><div class="l">Tamamlanan</div></div>
+      <div class="stat"><div class="n">${tasks.length ? Math.round(doneTasks/tasks.length*100) : 0}%</div><div class="l">İlerleme</div></div>
+    </div>
+
+    <div class="section">
+      <h3>Klasörler</h3>
+      <div id="folders-list"></div>
+    </div>
+
+    <div class="section">
+      <h3>Dosyalar</h3>
+      <div id="files-list"></div>
+    </div>
+
+    <div class="section">
+      <h3>Görevler ve Gantt</h3>
+      <div id="tasks-list"></div>
+    </div>
+  `;
+
+  c.querySelectorAll('[data-crumb]').forEach(el => {
+    el.onclick = () => {
+      const i = parseInt(el.dataset.crumb);
+      currentFolderPath = i < 0 ? [] : currentFolderPath.slice(0, i + 1);
+      renderContent();
+    };
+  });
+
+  document.getElementById('btn-new-folder').onclick = () => openFolderModal();
+  document.getElementById('btn-upload').onclick = () => openUploadModal();
+  document.getElementById('btn-new-task').onclick = () => openTaskModal();
+
+  renderFolders(p, folderKey);
+  renderFiles(p, files);
+  renderTasks(p, tasks);
+}
+
+function renderFolders(p, folderKey) {
+  const el = document.getElementById('folders-list');
+  const d = userData();
+  const prefix = folderKey ? folderKey + '/' : '';
+  const subfolders = new Set();
+  d.files.filter(f => f.projectId === p.id && f.folder.startsWith(prefix)).forEach(f => {
+    const rest = f.folder.slice(prefix.length);
+    if (rest) subfolders.add(rest.split('/')[0]);
+  });
+  d.tasks.filter(t => t.projectId === p.id && t.folder && t.folder.startsWith(prefix)).forEach(t => {
+    const rest = t.folder.slice(prefix.length);
+    if (rest) subfolders.add(rest.split('/')[0]);
+  });
+  (p.emptyFolders || []).forEach(f => {
+    if (f.startsWith(prefix)) {
+      const rest = f.slice(prefix.length);
+      if (rest) subfolders.add(rest.split('/')[0]);
+    }
+  });
+
+  const list = [...subfolders];
+  if (!list.length) {
+    el.innerHTML = `<div class="empty" style="padding:22px">Bu seviyede klasör yok.</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="list">${list.map(name => `
+    <div class="list-item" data-folder="${escapeHtml(name)}">
+      <span class="ic">📁</span>
+      <div class="meta"><div class="name">${escapeHtml(name)}</div></div>
+      <div class="right">
+        <button data-del-folder="${escapeHtml(name)}" title="Sil">Sil</button>
+      </div>
+    </div>`).join('')}</div>`;
+
+  el.querySelectorAll('.list-item').forEach(item => {
+    item.onclick = (e) => {
+      if (e.target.dataset.delFolder !== undefined) return;
+      currentFolderPath = [...currentFolderPath, item.dataset.folder];
+      renderContent();
+    };
+  });
+  el.querySelectorAll('[data-del-folder]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const name = btn.dataset.delFolder;
+      const full = folderKey ? folderKey + '/' + name : name;
+      if (!confirm('Klasörü sil? İçindeki dosyalar da silinir.')) return;
+      const d2 = userData();
+      d2.files = d2.files.filter(f => !(f.projectId === p.id && (f.folder === full || f.folder.startsWith(full + '/'))));
+      d2.tasks = d2.tasks.filter(t => !(t.projectId === p.id && (t.folder === full || t.folder.startsWith(full + '/'))));
+      p.emptyFolders = (p.emptyFolders || []).filter(f => f !== full && !f.startsWith(full + '/'));
+      persist(); toast('Klasör silindi.'); renderContent();
+    };
+  });
+}
+
+function renderFiles(p, files) {
+  const el = document.getElementById('files-list');
+  if (!files.length) {
+    el.innerHTML = `<div class="empty" style="padding:22px">Bu klasörde dosya yok.</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="list">${files.map(f => `
+    <div class="list-item" data-fid="${f.id}">
+      <span class="ic">${fileIcon(f.name)}</span>
+      <div class="meta">
+        <div class="name">${escapeHtml(f.name)}</div>
+        <div class="desc">${fmtSize(f.size)} · ${new Date(f.created).toLocaleString('tr-TR')}</div>
+      </div>
+      <div class="right">
+        <button data-dl="${f.id}" title="İndir">İndir</button>
+        <button data-del="${f.id}" title="Sil">Sil</button>
+      </div>
+    </div>`).join('')}</div>`;
+
+  el.querySelectorAll('[data-dl]').forEach(b => {
+    b.onclick = (e) => {
+      e.stopPropagation();
+      const f = userData().files.find(x => x.id === b.dataset.dl);
+      if (f && f.data) {
+        const a = document.createElement('a');
+        a.href = f.data; a.download = f.name; a.click();
+      } else toast('Dosya verisi yok.');
+    };
+  });
+  el.querySelectorAll('[data-del]').forEach(b => {
+    b.onclick = (e) => {
+      e.stopPropagation();
+      if (!confirm('Dosyayı sil?')) return;
+      const d = userData();
+      d.files = d.files.filter(x => x.id !== b.dataset.del);
+      persist(); toast('Dosya silindi.'); renderContent();
+    };
+  });
+}
+
+function renderTasks(p, tasks) {
+  const el = document.getElementById('tasks-list');
+  if (!tasks.length) {
+    el.innerHTML = `<div class="empty" style="padding:22px">Görev yok. "+ Görev" ile ekle.</div>`;
+    return;
+  }
+  const withDates = tasks.filter(t => t.start && t.end);
+  let ganttHtml = '';
+  if (withDates.length) {
+    const minD = Math.min(...withDates.map(t => new Date(t.start).getTime()));
+    const maxD = Math.max(...withDates.map(t => new Date(t.end).getTime()));
+    const span = maxD - minD || 1;
+    ganttHtml = `<div class="gantt" style="margin-bottom:12px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Gantt (${new Date(minD).toLocaleDateString('tr-TR')} → ${new Date(maxD).toLocaleDateString('tr-TR')})</div>
+      ${withDates.map(t => {
+        const left = (new Date(t.start).getTime() - minD) / span * 100;
+        const width = Math.max(2, (new Date(t.end).getTime() - new Date(t.start).getTime()) / span * 100);
+        return `<div class="gantt-row">
+          <div class="gantt-label" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</div>
+          <div class="gantt-track">
+            <div class="gantt-bar" style="left:${left}%;width:${width}%;background:${t.status==='done'?'#059669':'#2563eb'}">${t.progress||0}%</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  el.innerHTML = ganttHtml + `<div class="list">${tasks.map(t => `
+    <div class="list-item">
+      <span class="ic">${t.status === 'done' ? '✅' : t.status === 'doing' ? '🔄' : '⏳'}</span>
+      <div class="meta">
+        <div class="name">${escapeHtml(t.name)}</div>
+        <div class="desc">
+          ${t.start ? new Date(t.start).toLocaleDateString('tr-TR') : '—'} → ${t.end ? new Date(t.end).toLocaleDateString('tr-TR') : '—'}
+          ${t.assignee ? ' · 👤 ' + escapeHtml(t.assignee) : ''}
+          ${t.folder ? ' · 📁 ' + escapeHtml(t.folder) : ''}
+        </div>
+      </div>
+      <div class="right">
+        <span class="badge ${t.status==='done'?'ok':t.status==='doing'?'':'warn'}">${t.status==='done'?'Bitti':t.status==='doing'?'Devam':'Bekliyor'}</span>
+        <button data-toggle="${t.id}" title="Durum değiştir">Durum</button>
+        <button data-delt="${t.id}" title="Sil">Sil</button>
+      </div>
+    </div>`).join('')}</div>`;
+
+  el.querySelectorAll('[data-toggle]').forEach(b => {
+    b.onclick = () => {
+      const t = userData().tasks.find(x => x.id === b.dataset.toggle);
+      t.status = t.status === 'todo' ? 'doing' : t.status === 'doing' ? 'done' : 'todo';
+      t.progress = t.status === 'done' ? 100 : t.status === 'doing' ? 50 : 0;
+      persist(); renderContent();
+    };
+  });
+  el.querySelectorAll('[data-delt]').forEach(b => {
+    b.onclick = () => {
+      if (!confirm('Görevi sil?')) return;
+      const d = userData();
+      d.tasks = d.tasks.filter(x => x.id !== b.dataset.delt);
+      persist(); renderContent();
+    };
+  });
+}
+
+function openModal(html, onMount) {
+  const bg = document.createElement('div');
+  bg.className = 'modal-bg';
+  bg.innerHTML = `<div class="modal">${html}</div>`;
+  document.body.appendChild(bg);
+  bg.onclick = (e) => { if (e.target === bg) bg.remove(); };
+  onMount(bg.querySelector('.modal'), () => bg.remove());
+}
+
+function openProjectModal() {
+  openModal(`
+    <h3>Yeni Proje</h3>
+    <label>Proje adı</label>
+    <input id="np-name" placeholder="örn. Stadyum, Hastane, Konut..." autofocus>
+    <label>Açıklama (isteğe bağlı)</label>
+    <textarea id="np-desc" placeholder="Kısa açıklama"></textarea>
+    <div class="modal-actions">
+      <button id="np-cancel">İptal</button>
+      <button class="primary" id="np-save">Oluştur</button>
+    </div>`, (m, close) => {
+    m.querySelector('#np-cancel').onclick = close;
+    m.querySelector('#np-save').onclick = () => {
+      const name = m.querySelector('#np-name').value.trim();
+      if (!name) return toast('Proje adı gerekli.');
+      const d = userData();
+      d.projects.push({ id: uid(), name, desc: m.querySelector('#np-desc').value.trim(), created: Date.now(), emptyFolders: [] });
+      persist(); close();
+      currentProjectId = d.projects[d.projects.length - 1].id;
+      currentFolderPath = [];
+      renderTree(); renderContent();
+      toast('Proje oluşturuldu.');
+    };
+  });
+}
+
+function openFolderModal() {
+  openModal(`
+    <h3>Yeni Klasör</h3>
+    <label>Klasör adı</label>
+    <input id="nf-name" placeholder="örn. Elektrik, Mekanik, Maliyet..." autofocus>
+    <div class="modal-actions">
+      <button id="nf-cancel">İptal</button>
+      <button class="primary" id="nf-save">Oluştur</button>
+    </div>`, (m, close) => {
+    m.querySelector('#nf-cancel').onclick = close;
+    m.querySelector('#nf-save').onclick = () => {
+      const name = m.querySelector('#nf-name').value.trim();
+      if (!name) return toast('Klasör adı gerekli.');
+      const p = currentProject();
+      const full = currentFolderPath.length ? currentFolderPath.join('/') + '/' + name : name;
+      if (!p.emptyFolders) p.emptyFolders = [];
+      if (!p.emptyFolders.includes(full)) p.emptyFolders.push(full);
+      persist(); close(); renderContent();
+      toast('Klasör oluşturuldu.');
+    };
+  });
+}
+
+function openUploadModal() {
+  openModal(`
+    <h3>Dosya Yükle</h3>
+    <div class="dropzone" id="dz">📎 Dosyaları buraya sürükle veya tıkla</div>
+    <input type="file" id="fi" multiple style="display:none">
+    <div class="modal-actions"><button id="up-close">Kapat</button></div>`, (m, close) => {
+    const dz = m.querySelector('#dz');
+    const fi = m.querySelector('#fi');
+    m.querySelector('#up-close').onclick = close;
+    dz.onclick = () => fi.click();
+    dz.ondragover = (e) => { e.preventDefault(); dz.classList.add('drag'); };
+    dz.ondragleave = () => dz.classList.remove('drag');
+    dz.ondrop = (e) => { e.preventDefault(); dz.classList.remove('drag'); handleFiles(e.dataTransfer.files, close); };
+    fi.onchange = () => handleFiles(fi.files, close);
+  });
+}
+
+function handleFiles(files, close) {
+  if (!files.length) return;
+  const p = currentProject();
+  const folderKey = currentFolderPath.join('/');
+  let done = 0;
+  const total = files.length;
+  const d = userData();
+  [...files].forEach(file => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      d.files.push({
+        id: uid(), projectId: p.id, folder: folderKey, name: file.name,
+        size: file.size, type: file.type, data: reader.result, created: Date.now()
+      });
+      done++;
+      if (done === total) {
+        persist(); close(); renderContent();
+        toast(total + ' dosya yüklendi.');
+      }
+    };
+    reader.onerror = () => { toast('Hata: ' + file.name); };
+    reader.readAsDataURL(file);
+  });
+}
+
+function openTaskModal() {
+  openModal(`
+    <h3>Yeni Görev</h3>
+    <label>Görev adı</label>
+    <input id="nt-name" placeholder="örn. Yangın algılama montajı" autofocus>
+    <label>Sorumlu (isteğe bağlı)</label>
+    <input id="nt-assignee" placeholder="Ad">
+    <label>Başlangıç</label>
+    <input id="nt-start" type="date">
+    <label>Bitiş</label>
+    <input id="nt-end" type="date">
+    <label>Klasör (isteğe bağlı)</label>
+    <input id="nt-folder" placeholder="örn. Elektrik" value="${currentFolderPath.join('/')}">
+    <div class="modal-actions">
+      <button id="nt-cancel">İptal</button>
+      <button class="primary" id="nt-save">Oluştur</button>
+    </div>`, (m, close) => {
+    m.querySelector('#nt-cancel').onclick = close;
+    m.querySelector('#nt-save').onclick = () => {
+      const name = m.querySelector('#nt-name').value.trim();
+      if (!name) return toast('Görev adı gerekli.');
+      const d = userData();
+      d.tasks.push({
+        id: uid(), projectId: currentProject().id,
+        name, assignee: m.querySelector('#nt-assignee').value.trim(),
+        start: m.querySelector('#nt-start').value,
+        end: m.querySelector('#nt-end').value,
+        folder: m.querySelector('#nt-folder').value.trim(),
+        status: 'todo', progress: 0, created: Date.now()
+      });
+      persist(); close(); renderContent();
+      toast('Görev oluşturuldu.');
+    };
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+}
+function fmtSize(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+  if (b < 1024*1024*1024) return (b/1024/1024).toFixed(1) + ' MB';
+  return (b/1024/1024/1024).toFixed(2) + ' GB';
+}
+function fileIcon(name) {
+  const e = (name.split('.').pop() || '').toLowerCase();
+  if (['jpg','jpeg','png','gif','webp','svg','bmp'].includes(e)) return '🖼️';
+  if (['mp4','mov','avi','mkv','webm'].includes(e)) return '🎬';
+  if (e === 'pdf') return '📕';
+  if (['dwg','dxf','skp','rvt','ifc'].includes(e)) return '📐';
+  if (['xls','xlsx','csv'].includes(e)) return '📊';
+  if (['doc','docx'].includes(e)) return '📄';
+  if (['ppt','pptx'].includes(e)) return '📽️';
+  if (['zip','rar','7z'].includes(e)) return '🗜️';
+  if (['txt','md'].includes(e)) return '📝';
+  return '📎';
+}
+
+(function init() {
+  const saved = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
+  if (saved) {
+    try {
+      session = JSON.parse(saved);
+      if (db.users.find(u => u.id === session.userId)) { renderMain(); return; }
+      session = null;
+    } catch {}
+  }
+  renderAuth('login');
+})();
+</script>
+</body>
+</html>
