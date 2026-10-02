@@ -7,47 +7,28 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #f7f8fa;
-    --panel: #ffffff;
-    --border: #e5e7eb;
-    --text: #111827;
-    --muted: #6b7280;
-    --accent: #2563eb;
-    --accent-hover: #1d4ed8;
-    --danger: #dc2626;
-    --ok: #059669;
+    --bg: #f7f8fa; --panel: #ffffff; --border: #e5e7eb;
+    --text: #111827; --muted: #6b7280; --accent: #2563eb;
+    --accent-hover: #1d4ed8; --danger: #dc2626; --ok: #059669;
   }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.5;
-    height: 100vh;
-    overflow: hidden;
+    background: var(--bg); color: var(--text); font-size: 14px;
+    line-height: 1.5; height: 100vh; overflow: hidden;
   }
   #app { height: 100vh; display: flex; flex-direction: column; }
-
-  .auth-wrap {
-    display: flex; align-items: center; justify-content: center;
-    height: 100vh; background: linear-gradient(135deg, #f7f8fa 0%, #eef2ff 100%);
-  }
-  .auth-box {
-    background: var(--panel); padding: 40px; border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06); width: 380px; max-width: 92vw;
-  }
+  .auth-wrap { display: flex; align-items: center; justify-content: center; height: 100vh; background: linear-gradient(135deg, #f7f8fa 0%, #eef2ff 100%); }
+  .auth-box { background: var(--panel); padding: 40px; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); width: 380px; max-width: 92vw; }
   .auth-box h1 { font-size: 24px; margin-bottom: 4px; letter-spacing: -0.5px; }
   .auth-box .sub { color: var(--muted); margin-bottom: 24px; font-size: 13px; }
   .auth-box input[type=text], .auth-box input[type=email], .auth-box input[type=password] {
     width: 100%; padding: 11px 13px; border: 1px solid var(--border);
     border-radius: 9px; font-size: 14px; margin-bottom: 11px; outline: none;
-    transition: border 0.15s;
   }
   .auth-box input:focus { border-color: var(--accent); }
   .auth-box button.primary {
     width: 100%; padding: 11px; background: var(--accent); color: #fff;
-    border: none; border-radius: 9px; font-size: 14px; font-weight: 600;
-    cursor: pointer; transition: background 0.15s;
+    border: none; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer;
   }
   .auth-box button.primary:hover { background: var(--accent-hover); }
   .auth-box .switch { text-align: center; margin-top: 16px; color: var(--muted); font-size: 13px; }
@@ -56,82 +37,54 @@
   .remember input { width: auto; margin: 0; }
   .err { color: var(--danger); font-size: 13px; margin-bottom: 10px; min-height: 18px; }
 
-  .topbar {
-    height: 52px; background: var(--panel); border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; padding: 0 18px; gap: 14px; flex-shrink: 0;
-  }
+  .topbar { height: 52px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 18px; gap: 14px; flex-shrink: 0; }
   .logo { font-weight: 700; font-size: 16px; letter-spacing: -0.3px; }
   .logo span { color: var(--accent); }
   .topbar .spacer { flex: 1; }
   .topbar .user { color: var(--muted); font-size: 13px; }
-  .topbar button.ghost {
-    background: transparent; border: 1px solid var(--border); padding: 6px 12px;
-    border-radius: 7px; cursor: pointer; font-size: 13px; color: var(--text);
-  }
+  .topbar button.ghost { background: transparent; border: 1px solid var(--border); padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; color: var(--text); }
   .topbar button.ghost:hover { background: var(--bg); }
 
   .body { flex: 1; display: flex; overflow: hidden; }
-
-  .sidebar {
-    width: 260px; background: var(--panel); border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
-  }
-  .sidebar-head {
-    padding: 14px 16px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
+  .sidebar { width: 260px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+  .sidebar-head { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
   .sidebar-head h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
-  .sidebar-head button {
-    background: var(--accent); color: #fff; border: none; width: 24px; height: 24px;
-    border-radius: 6px; cursor: pointer; font-size: 15px; line-height: 1; font-weight: 600;
-  }
+  .sidebar-head button { background: var(--accent); color: #fff; border: none; width: 24px; height: 24px; border-radius: 6px; cursor: pointer; font-size: 15px; line-height: 1; font-weight: 600; }
   .sidebar-head button:hover { background: var(--accent-hover); }
   .tree { flex: 1; overflow-y: auto; padding: 8px; }
-  .tree-item {
-    display: flex; align-items: center; gap: 7px; padding: 7px 9px;
-    border-radius: 7px; cursor: pointer; font-size: 13.5px; user-select: none;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
+  .tree-item { display: flex; align-items: center; gap: 7px; padding: 7px 9px; border-radius: 7px; cursor: pointer; font-size: 13.5px; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tree-item:hover { background: var(--bg); }
   .tree-item.active { background: #eff6ff; color: var(--accent); font-weight: 500; }
   .tree-item .icon { flex-shrink: 0; width: 16px; text-align: center; }
   .tree-item .label { overflow: hidden; text-overflow: ellipsis; }
 
   .content { flex: 1; overflow-y: auto; padding: 24px 28px; }
-  .content-head {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
-  }
+  .content-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
   .content-head h1 { font-size: 22px; letter-spacing: -0.4px; }
   .content-head .path { color: var(--muted); font-size: 12px; margin-top: 2px; }
   .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .actions button {
-    padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
-    cursor: pointer; border: 1px solid var(--border); background: var(--panel);
-    color: var(--text); transition: all 0.15s;
-  }
+  .actions button { padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--panel); color: var(--text); transition: all 0.15s; }
   .actions button:hover { background: var(--bg); }
   .actions button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   .actions button.primary:hover { background: var(--accent-hover); }
 
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 22px; }
-  .stat {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 11px;
-    padding: 14px 16px;
-  }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 11px; padding: 14px 16px; }
   .stat .n { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
   .stat .l { color: var(--muted); font-size: 12px; margin-top: 2px; }
 
   .section { margin-bottom: 26px; }
-  .section h3 {
-    font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;
-    color: var(--muted); margin-bottom: 10px;
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .section h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  .section-head .mini-actions { display: flex; gap: 6px; }
+  .section-head .mini-actions button {
+    background: transparent; border: 1px solid var(--border); padding: 4px 10px;
+    border-radius: 6px; cursor: pointer; font-size: 12px; color: var(--text);
   }
+  .section-head .mini-actions button:hover { background: var(--bg); border-color: var(--accent); color: var(--accent); }
+
   .list { background: var(--panel); border: 1px solid var(--border); border-radius: 11px; overflow: hidden; }
-  .list-item {
-    display: flex; align-items: center; gap: 11px; padding: 11px 15px;
-    border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s;
-  }
+  .list-item { display: flex; align-items: center; gap: 11px; padding: 11px 15px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
   .list-item:last-child { border-bottom: none; }
   .list-item:hover { background: var(--bg); }
   .list-item .ic { font-size: 17px; flex-shrink: 0; }
@@ -139,83 +92,49 @@
   .list-item .name { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .list-item .desc { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .list-item .right { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
-  .list-item .right button {
-    background: transparent; border: none; cursor: pointer; color: var(--muted);
-    padding: 4px 7px; border-radius: 6px; font-size: 12px;
-  }
+  .list-item .right button { background: transparent; border: none; cursor: pointer; color: var(--muted); padding: 4px 7px; border-radius: 6px; font-size: 12px; }
   .list-item .right button:hover { background: var(--bg); color: var(--danger); }
 
-  .empty {
-    text-align: center; padding: 44px 20px; color: var(--muted); font-size: 13.5px;
-    background: var(--panel); border: 1px dashed var(--border); border-radius: 11px;
-  }
+  .empty { text-align: center; padding: 44px 20px; color: var(--muted); font-size: 13.5px; background: var(--panel); border: 1px dashed var(--border); border-radius: 11px; }
   .empty .big { font-size: 30px; margin-bottom: 8px; opacity: 0.5; }
 
-  .badge {
-    font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500;
-    background: #eff6ff; color: var(--accent);
-  }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; background: #eff6ff; color: var(--accent); }
   .badge.ok { background: #ecfdf5; color: var(--ok); }
   .badge.warn { background: #fffbeb; color: #b45309; }
 
-  .modal-bg {
-    position: fixed; inset: 0; background: rgba(17,24,39,0.4);
-    display: flex; align-items: center; justify-content: center; z-index: 100;
-    backdrop-filter: blur(2px);
+  /* Dosya yükleme alanı — Dosyalar bölümünün içinde */
+  .dropzone-inline {
+    border: 2px dashed var(--border); border-radius: 11px; padding: 22px;
+    text-align: center; color: var(--muted); font-size: 13px;
+    cursor: pointer; transition: all 0.15s; background: var(--panel);
+    margin-bottom: 10px;
   }
-  .modal {
-    background: var(--panel); border-radius: 14px; padding: 24px;
-    width: 440px; max-width: 92vw; box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-    max-height: 88vh; overflow-y: auto;
-  }
+  .dropzone-inline:hover, .dropzone-inline.drag { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
+  .dropzone-inline .small { font-size: 11.5px; opacity: 0.7; margin-top: 4px; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(17,24,39,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); }
+  .modal { background: var(--panel); border-radius: 14px; padding: 24px; width: 440px; max-width: 92vw; box-shadow: 0 12px 40px rgba(0,0,0,0.15); max-height: 88vh; overflow-y: auto; }
   .modal h3 { font-size: 17px; margin-bottom: 16px; }
   .modal label { display: block; font-size: 12.5px; color: var(--muted); margin-bottom: 5px; margin-top: 12px; }
-  .modal input, .modal textarea, .modal select {
-    width: 100%; padding: 9px 11px; border: 1px solid var(--border);
-    border-radius: 8px; font-size: 13.5px; font-family: inherit; outline: none;
-  }
+  .modal input, .modal textarea, .modal select { width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; font-family: inherit; outline: none; }
   .modal input:focus, .modal textarea:focus, .modal select:focus { border-color: var(--accent); }
   .modal textarea { resize: vertical; min-height: 70px; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
-  .modal-actions button {
-    padding: 9px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 500;
-    cursor: pointer; border: 1px solid var(--border); background: var(--panel); color: var(--text);
-  }
+  .modal-actions button { padding: 9px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--panel); color: var(--text); }
   .modal-actions button:hover { background: var(--bg); }
   .modal-actions button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   .modal-actions button.primary:hover { background: var(--accent-hover); }
-
-  .dropzone {
-    border: 2px dashed var(--border); border-radius: 11px; padding: 26px;
-    text-align: center; color: var(--muted); font-size: 13px;
-    cursor: pointer; transition: all 0.15s; background: var(--panel);
-  }
-  .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: #eff6ff; color: var(--accent); }
 
   .gantt { background: var(--panel); border: 1px solid var(--border); border-radius: 11px; padding: 16px; overflow-x: auto; }
   .gantt-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; min-width: 600px; }
   .gantt-label { width: 180px; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
   .gantt-track { flex: 1; height: 24px; background: var(--bg); border-radius: 6px; position: relative; }
-  .gantt-bar {
-    position: absolute; top: 0; height: 100%; background: var(--accent);
-    border-radius: 6px; display: flex; align-items: center; padding: 0 8px;
-    color: #fff; font-size: 11px; font-weight: 500; overflow: hidden; white-space: nowrap;
-  }
+  .gantt-bar { position: absolute; top: 0; height: 100%; background: var(--accent); border-radius: 6px; display: flex; align-items: center; padding: 0 8px; color: #fff; font-size: 11px; font-weight: 500; overflow: hidden; white-space: nowrap; }
 
-  .toast {
-    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
-    background: #111827; color: #fff; padding: 11px 20px; border-radius: 9px;
-    font-size: 13.5px; z-index: 200; opacity: 0; transition: opacity 0.2s, transform 0.2s;
-    pointer-events: none;
-  }
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: #111827; color: #fff; padding: 11px 20px; border-radius: 9px; font-size: 13.5px; z-index: 200; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
-
-  .offline-bar {
-    background: #b45309; color: #fff; text-align: center; padding: 5px;
-    font-size: 12px; display: none;
-  }
+  .offline-bar { background: #b45309; color: #fff; text-align: center; padding: 5px; font-size: 12px; display: none; }
   .offline-bar.show { display: block; }
-
   ::-webkit-scrollbar { width: 9px; height: 9px; }
   ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 5px; }
   ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
@@ -305,7 +224,6 @@ function doRegister() {
   if (p !== p2) return err.textContent = 'Şifreler eşleşmiyor.';
   if (db.users.find(x => x.username.toLowerCase() === u.toLowerCase())) return err.textContent = 'Bu kullanıcı adı alınmış.';
   if (db.users.find(x => x.email === e)) return err.textContent = 'Bu e-posta kayıtlı.';
-
   const user = { id: uid(), username: u, email: e, pass: hash(p), created: Date.now() };
   db.users.push(user);
   db.data[user.id] = { projects: [], files: [], tasks: [], notes: [] };
@@ -325,7 +243,6 @@ function doLogin() {
   const user = db.users.find(x =>
     x.username.toLowerCase() === id.toLowerCase() || x.email === id.toLowerCase());
   if (!user || user.pass !== hash(p)) return err.textContent = 'Kullanıcı adı veya şifre hatalı.';
-
   session = { userId: user.id, username: user.username };
   if (remember) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   else sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -363,13 +280,11 @@ function renderMain() {
       </div>
       <div class="content" id="content"></div>
     </div>`;
-
   document.getElementById('btn-logout').onclick = doLogout;
   document.getElementById('btn-new-project').onclick = () => openProjectModal();
   updateOfflineBar();
   window.addEventListener('online', updateOfflineBar);
   window.addEventListener('offline', updateOfflineBar);
-
   renderTree();
   renderContent();
 }
@@ -423,10 +338,7 @@ function renderContent() {
         <div class="stat"><div class="n">${d.tasks.length}</div><div class="l">Görev</div></div>
         <div class="stat"><div class="n">${d.tasks.filter(t=>t.status==='done').length}</div><div class="l">Tamamlanan</div></div>
       </div>
-      <div class="empty">
-        <div class="big">📁</div>
-        Sol taraftan bir proje seç veya yeni proje oluştur.
-      </div>`;
+      <div class="empty"><div class="big">📁</div>Sol taraftan bir proje seç veya yeni proje oluştur.</div>`;
     return;
   }
 
@@ -460,17 +372,38 @@ function renderContent() {
     </div>
 
     <div class="section">
-      <h3>Klasörler</h3>
+      <div class="section-head">
+        <h3>Klasörler</h3>
+        <div class="mini-actions">
+          <button id="btn-new-folder-2">+ Yeni Klasör</button>
+        </div>
+      </div>
       <div id="folders-list"></div>
     </div>
 
     <div class="section">
-      <h3>Dosyalar</h3>
+      <div class="section-head">
+        <h3>Dosyalar</h3>
+        <div class="mini-actions">
+          <button id="btn-new-folder-in-files">+ Yeni Klasör</button>
+          <button id="btn-upload-in-files">+ Dosya Yükle</button>
+        </div>
+      </div>
+      <div class="dropzone-inline" id="dz-inline">
+        📎 Dosyaları buraya sürükle veya tıkla
+        <div class="small">PDF, DWG, SKP, RVT, fotoğraf, video, Excel, Word... her tür dosya</div>
+      </div>
+      <input type="file" id="fi-inline" multiple style="display:none">
       <div id="files-list"></div>
     </div>
 
     <div class="section">
-      <h3>Görevler ve Gantt</h3>
+      <div class="section-head">
+        <h3>Görevler ve Gantt</h3>
+        <div class="mini-actions">
+          <button id="btn-new-task-2">+ Görev</button>
+        </div>
+      </div>
       <div id="tasks-list"></div>
     </div>
   `;
@@ -486,6 +419,19 @@ function renderContent() {
   document.getElementById('btn-new-folder').onclick = () => openFolderModal();
   document.getElementById('btn-upload').onclick = () => openUploadModal();
   document.getElementById('btn-new-task').onclick = () => openTaskModal();
+  document.getElementById('btn-new-folder-2').onclick = () => openFolderModal();
+  document.getElementById('btn-new-folder-in-files').onclick = () => openFolderModal();
+  document.getElementById('btn-upload-in-files').onclick = () => document.getElementById('fi-inline').click();
+  document.getElementById('btn-new-task-2').onclick = () => openTaskModal();
+
+  // Inline dropzone
+  const dz = document.getElementById('dz-inline');
+  const fi = document.getElementById('fi-inline');
+  dz.onclick = () => fi.click();
+  dz.ondragover = (e) => { e.preventDefault(); dz.classList.add('drag'); };
+  dz.ondragleave = () => dz.classList.remove('drag');
+  dz.ondrop = (e) => { e.preventDefault(); dz.classList.remove('drag'); handleFiles(e.dataTransfer.files, null); };
+  fi.onchange = () => handleFiles(fi.files, null);
 
   renderFolders(p, folderKey);
   renderFiles(p, files);
@@ -514,7 +460,7 @@ function renderFolders(p, folderKey) {
 
   const list = [...subfolders];
   if (!list.length) {
-    el.innerHTML = `<div class="empty" style="padding:22px">Bu seviyede klasör yok.</div>`;
+    el.innerHTML = `<div class="empty" style="padding:22px">Bu seviyede klasör yok. "Yeni Klasör" ile oluştur.</div>`;
     return;
   }
   el.innerHTML = `<div class="list">${list.map(name => `
@@ -551,7 +497,7 @@ function renderFolders(p, folderKey) {
 function renderFiles(p, files) {
   const el = document.getElementById('files-list');
   if (!files.length) {
-    el.innerHTML = `<div class="empty" style="padding:22px">Bu klasörde dosya yok.</div>`;
+    el.innerHTML = `<div class="empty" style="padding:22px">Bu klasörde dosya yok. Yukarıdaki alana sürükle veya tıkla.</div>`;
     return;
   }
   el.innerHTML = `<div class="list">${files.map(f => `
@@ -614,7 +560,6 @@ function renderTasks(p, tasks) {
       }).join('')}
     </div>`;
   }
-
   el.innerHTML = ganttHtml + `<div class="list">${tasks.map(t => `
     <div class="list-item">
       <span class="ic">${t.status === 'done' ? '✅' : t.status === 'doing' ? '🔄' : '⏳'}</span>
@@ -712,7 +657,7 @@ function openFolderModal() {
 function openUploadModal() {
   openModal(`
     <h3>Dosya Yükle</h3>
-    <div class="dropzone" id="dz">📎 Dosyaları buraya sürükle veya tıkla</div>
+    <div class="dropzone-inline" id="dz" style="margin-bottom:0">📎 Dosyaları buraya sürükle veya tıkla</div>
     <input type="file" id="fi" multiple style="display:none">
     <div class="modal-actions"><button id="up-close">Kapat</button></div>`, (m, close) => {
     const dz = m.querySelector('#dz');
@@ -742,7 +687,7 @@ function handleFiles(files, close) {
       });
       done++;
       if (done === total) {
-        persist(); close(); renderContent();
+        persist(); if (close) close(); renderContent();
         toast(total + ' dosya yüklendi.');
       }
     };
